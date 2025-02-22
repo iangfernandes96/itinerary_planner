@@ -1,7 +1,7 @@
 """Initial migration
 
 Revision ID: initial_migration
-Revises: 
+Revises: None
 Create Date: 2024-02-20
 
 """
@@ -31,4 +31,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table('itinerary_queries') 
+    op.drop_table('itinerary_queries')
