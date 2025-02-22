@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -26,4 +26,4 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 
 # Expose the port the app runs on
-EXPOSE 8000 
+EXPOSE 8000
