@@ -37,7 +37,7 @@ class DatabaseSessionManager:
             pool_timeout=30,
             pool_pre_ping=True
         )
-        
+
         # Read engine optimized for read operations
         self._read_engine = create_async_engine(
             host,
@@ -73,7 +73,7 @@ class DatabaseSessionManager:
         self._read_sessionmaker = None
 
     @contextlib.asynccontextmanager
-    async def connect(self, mode: Literal["read", "write"] = "write") -> AsyncIterator[AsyncConnection]:
+    async def connect(self, mode: Literal["read", "write"] = "write") -> AsyncIterator[AsyncConnection]:    # noqa
         engine = self._write_engine if mode == "write" else self._read_engine
         if engine is None:
             raise Exception("DatabaseSessionManager is not initialized")
@@ -86,8 +86,8 @@ class DatabaseSessionManager:
                 raise
 
     @contextlib.asynccontextmanager
-    async def session(self, mode: Literal["read", "write"] = "write") -> AsyncIterator[AsyncSession]:
-        sessionmaker = self._write_sessionmaker if mode == "write" else self._read_sessionmaker
+    async def session(self, mode: Literal["read", "write"] = "write") -> AsyncIterator[AsyncSession]:   # noqa
+        sessionmaker = self._write_sessionmaker if mode == "write" else self._read_sessionmaker # noqa
         if sessionmaker is None:
             raise Exception("DatabaseSessionManager is not initialized")
 

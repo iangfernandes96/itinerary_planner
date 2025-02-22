@@ -4,7 +4,7 @@ from sqlalchemy import select
 from pydantic import BaseModel
 from ..database import Base
 
-ModelType = TypeVar("ModelType", bound=Base)
+ModelType = TypeVar("ModelType", bound=Base)    # type: ignore
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 
 
@@ -50,4 +50,4 @@ class BaseRepository(Generic[ModelType, CreateSchemaType]):
             await self.db.delete(obj)
             await self.db.commit()
             return True
-        return False 
+        return False

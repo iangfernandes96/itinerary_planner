@@ -14,4 +14,4 @@ class ItineraryRepository(
         self, db_obj: ItineraryQuery, response: str
     ) -> ItineraryQuery:
         """Update itinerary response"""
-        return await self.update(db_obj, {"itinerary_response": response}) 
+        return await self.update(db_obj, {"itinerary_response": response})
