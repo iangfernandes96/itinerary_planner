@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class LLMProvider(ABC):
@@ -10,7 +11,7 @@ class LLMProvider(ABC):
         pass
 
     @abstractmethod
-    async def initialize(self, api_key: str, **kwargs) -> None:
+    async def initialize(self, api_key: str, **kwargs: Any) -> None:
         """Initialize the LLM provider with credentials"""
         pass
 

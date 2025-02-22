@@ -22,9 +22,6 @@ migrate-up:
 migrate-down:
 	docker compose exec app alembic downgrade base
 
-run:
-	docker compose up
-
 logs:
 	docker compose logs -f
 
