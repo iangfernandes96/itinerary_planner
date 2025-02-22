@@ -1,4 +1,4 @@
-.PHONY: build up down recreate-db psql migrate-up migrate-down run logs install-hooks
+.PHONY: build up down recreate-db psql migrate-up migrate-down logs install-hooks frontend-install frontend-build
 
 build:
 	docker compose build
@@ -17,17 +17,26 @@ psql:
 	docker compose exec db psql -U itinerary_user -d itinerary_db
 
 migrate-up:
-	docker compose exec app alembic upgrade head
+	docker compose exec backend alembic upgrade head
 
 migrate-down:
-	docker compose exec app alembic downgrade base
+	docker compose exec backend alembic downgrade base
 
 logs:
 	docker compose logs -f
 
-shell:
-	docker compose exec app bash
+shell-backend:
+	docker compose exec backend bash
+
+shell-frontend:
+	docker compose exec frontend sh
 
 install-hooks:
 	pip install -r requirements.txt
 	pre-commit install
+
+frontend-install:
+	cd frontend && npm install
+
+frontend-build:
+	cd frontend && npm run build
