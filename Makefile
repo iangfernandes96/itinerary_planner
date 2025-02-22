@@ -1,4 +1,4 @@
-.PHONY: build up down recreate-db psql migrate-up migrate-down run logs
+.PHONY: build up down recreate-db psql migrate-up migrate-down run logs install-hooks
 
 build:
 	docker compose build
@@ -29,4 +29,8 @@ logs:
 	docker compose logs -f
 
 shell:
-	docker compose exec app bash 
+	docker compose exec app bash
+
+install-hooks:
+	pip install -r requirements.txt
+	pre-commit install
