@@ -4,4 +4,4 @@ Services package for business logic
 
 from .itinerary import ItineraryService
 
-__all__ = ["ItineraryService"] 
+__all__ = ["ItineraryService"]

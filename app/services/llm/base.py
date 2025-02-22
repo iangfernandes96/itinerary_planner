@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class LLMProvider(ABC):
     """Base class for LLM providers"""
-    
+
     @abstractmethod
     async def generate_text(self, prompt: str) -> str:
         """Generate text from prompt"""
@@ -25,4 +24,4 @@ class LLMProvider(ABC):
     @abstractmethod
     def model_name(self) -> str:
         """Get the model name"""
-        pass 
+        pass

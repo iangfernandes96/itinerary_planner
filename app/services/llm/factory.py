@@ -22,4 +22,4 @@ class LLMFactory:
         """Create a new instance of an LLM provider"""
         if name not in cls._providers:
             raise ValueError(f"Unknown LLM provider: {name}")
-        return cls._providers[name]() 
+        return cls._providers[name]()
