@@ -1,153 +1,246 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
-    Button,
-    Container,
-    Group,
-    Paper,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
     Select,
-    Stack,
-    TextInput,
-    Title,
-    useMantineTheme
-} from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
-import { useForm } from '@mantine/form';
-import { IconCalendar, IconPlane } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
-import { ItineraryPreferences } from '../types/itinerary';
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
+const formSchema = z.object({
+    location: z.string().min(1, 'Location is required'),
+    startDate: z.date({
+        required_error: 'Start date is required',
+    }),
+    endDate: z.date({
+        required_error: 'End date is required',
+    }),
+    budget: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+        message: 'Budget must be a positive number',
+    }),
+    accommodation: z.string({
+        required_error: 'Please select an accommodation type',
+    }),
+    transportation: z.string({
+        required_error: 'Please select a transportation type',
+    }),
+}).refine((data) => data.startDate <= data.endDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+});
 
-const INTERESTS = [
-    { value: 'historical', label: 'Historical Sites', group: 'Culture' },
-    { value: 'cultural', label: 'Cultural Experiences', group: 'Culture' },
-    { value: 'nature', label: 'Nature & Outdoors', group: 'Activities' },
-    { value: 'food', label: 'Food & Dining', group: 'Food & Drink' },
-    { value: 'shopping', label: 'Shopping', group: 'Activities' },
-    { value: 'art', label: 'Art & Museums', group: 'Culture' },
-    { value: 'nightlife', label: 'Nightlife', group: 'Entertainment' },
-    { value: 'relaxation', label: 'Relaxation & Wellness', group: 'Activities' },
-];
+interface ItineraryFormProps {
+    onSubmit: (data: z.infer<typeof formSchema>) => void;
+    isLoading: boolean;
+}
 
-export function ItineraryForm({ onSubmit, isLoading }: { onSubmit: (values: ItineraryPreferences) => void; isLoading: boolean }) {
-    console.log('ItineraryForm component rendered'); // Debug line
-    const theme = useMantineTheme();
-    const [budgetType, setBudgetType] = useState<'per_day' | 'total'>('total');
-
-    const form = useForm<ItineraryPreferences>({
-        initialValues: {
-            destination: '',
-            startDate: new Date(),
-            endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-            budget: {
-                amount: 0,
-                type: 'total',
-            },
-            interests: [],
-            dietaryRestrictions: [],
-            accommodationType: 'mid_range',
-            transportationType: 'public',
-        },
-        validate: {
-            destination: (value) => (!value ? 'Destination is required' : null),
-            budget: {
-                amount: (value) => (value <= 0 ? 'Budget must be greater than 0' : null),
-            },
-            // startDate: (value, values) =>
-            //     new Date(value) >= new Date(values.endDate)
-            //         ? 'Start date must be before end date'
-            //         : null,
+export function ItineraryForm({ onSubmit, isLoading }: ItineraryFormProps) {
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            location: '',
+            budget: '',
+            accommodation: '',
+            transportation: '',
         },
     });
-
-    const handleSubmit = form.onSubmit((values) => {
-        console.log('Form values submitted:', values); // Debug line
-        onSubmit({
-            ...values,
-            budget: {
-                ...values.budget,
-                type: budgetType,
-            },
-        });
-    });
-
-    useEffect(() => {
-        console.log('ItineraryForm initial values:', form.values); // Debug line
-    }, []);
 
     return (
-        <Container size="md" py="xl">
-            <Paper radius="md" p="xl" withBorder>
-                <form onSubmit={handleSubmit}>
-                    <Stack gap="lg">
-                        <Group justify="space-between" align="baseline">
-                            <Title order={2} fw={900} c={theme.primaryColor}>
-                                Plan Your Dream Trip
-                            </Title>
-                            <IconPlane size={30} color={theme.colors[theme.primaryColor][6]} />
-                        </Group>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-6 rounded-lg shadow-sm">
+                <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Destination</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Enter your destination" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                        <TextInput
-                            label="Destination"
-                            placeholder="Enter your destination"
-                            {...form.getInputProps('destination')}
-                        />
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <FormField
+                        control={form.control}
+                        name="startDate"
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Start Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}
+                                            >
+                                                {field.value ? (
+                                                    format(field.value, 'PPP')
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) =>
+                                                date < new Date(new Date().setHours(0, 0, 0, 0))
+                                            }
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                        <DatePickerInput
-                            icon={<IconCalendar size={16} />}
-                            type="range"
-                            label="Trip Duration"
-                            placeholder="Select start and end dates"
-                            value={[form.values.startDate, form.values.endDate]}
-                            onChange={(dates) => {
-                                if (dates) {
-                                    form.setFieldValue('startDate', dates[0]);
-                                    form.setFieldValue('endDate', dates[1]);
-                                }
-                            }}
-                        />
+                    <FormField
+                        control={form.control}
+                        name="endDate"
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>End Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}
+                                            >
+                                                {field.value ? (
+                                                    format(field.value, 'PPP')
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) =>
+                                                date < new Date(new Date().setHours(0, 0, 0, 0))
+                                            }
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
-                        {/* <div style={{ position: 'relative', zIndex: 1 }}>
-                            <MultiSelect
-                                label="Interests"
-                                placeholder="Select your interests"
-                                data={INTERESTS}
-                                value={form.values.interests || []}
-                                onChange={(values) => form.setFieldValue('interests', values)}
-                                withinPortal
-                            />
-                        </div> */}
+                <FormField
+                    control={form.control}
+                    name="budget"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Budget per day (in EUR)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    placeholder="Enter your daily budget"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                        <TextInput
-                            label="Budget Amount"
-                            placeholder="Enter your budget"
-                            {...form.getInputProps('budget.amount')}
-                        />
+                <FormField
+                    control={form.control}
+                    name="accommodation"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Accommodation Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select accommodation type" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="hotel">Hotel</SelectItem>
+                                    <SelectItem value="hostel">Hostel</SelectItem>
+                                    <SelectItem value="apartment">Apartment</SelectItem>
+                                    <SelectItem value="resort">Resort</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                        <Select
-                            label="Accommodation Type"
-                            data={[
-                                { value: 'budget', label: 'Budget' },
-                                { value: 'mid_range', label: 'Mid Range' },
-                                { value: 'luxury', label: 'Luxury' },
-                            ]}
-                            {...form.getInputProps('accommodationType')}
-                        />
+                <FormField
+                    control={form.control}
+                    name="transportation"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Transportation Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select transportation type" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="public">Public Transport</SelectItem>
+                                    <SelectItem value="car">Rental Car</SelectItem>
+                                    <SelectItem value="taxi">Taxi/Ride-sharing</SelectItem>
+                                    <SelectItem value="walking">Walking/Cycling</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                        <Select
-                            label="Transportation Type"
-                            data={[
-                                { value: 'public', label: 'Public' },
-                                { value: 'private', label: 'Private' },
-                                { value: 'walking', label: 'Walking' },
-                            ]}
-                            {...form.getInputProps('transportationType')}
-                        />
-
-                        <Button type="submit" loading={isLoading}>
-                            Submit
-                        </Button>
-                    </Stack>
-                </form>
-            </Paper>
-        </Container>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Generating Itinerary...' : 'Generate Itinerary'}
+                </Button>
+            </form>
+        </Form>
     );
 }

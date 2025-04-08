@@ -17,7 +17,7 @@ class GeminiProvider(LLMProvider):
 
     def __init__(self) -> None:
         self._model: Optional[genai.GenerativeModel] = None
-        self._model_name: str = "gemini-pro"
+        self._model_name: str = "gemini-2.0-flash"
         self._initialized: bool = False
 
     async def initialize(self, api_key: str, **kwargs: Any) -> None:
